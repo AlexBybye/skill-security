@@ -58,7 +58,7 @@ Credentials for Vertex AI and Google AI Studio.
 
 | Variable | Description | Example |
 |---|---|---|
-| `GOOGLE_APPLICATION_CREDENTIALS` | Path to GCP service account credentials. | `/path/to/sa-key.json` |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Path to GCP service account credentials. Optional -- if unset, `vertex_ai/*` models fall back to ambient Application Default Credentials (e.g. a GCE/Cloud Run attached service account or Workload Identity), same as Bedrock's IAM role fallback. | `/path/to/sa-key.json` |
 | `GEMINI_API_KEY` | Google AI Studio key; auto-set from `SKILL_SCANNER_LLM_API_KEY` when using Gemini via LiteLLM. | `(auto-set from LLM_API_KEY)` |
 
 ## VirusTotal
