@@ -4,5 +4,6 @@
   entry: skill-scanner-pre-commit
   language: python
   types: [file]
-  pass_filenames: false
+  pass_filenames: true
+  require_serial: true
   stages: [pre-commit]

@@ -112,6 +112,22 @@ chmod +x .git/hooks/pre-commit
 
 The hook entry point is `skill-scanner-pre-commit`, which is installed alongside the main CLI.
 
+### Incremental checks in CI
+
+There is no staged index to inspect after a CI checkout. Use pre-commit's
+revision comparison so it passes the changed filenames to Skill Scanner:
+
+```bash
+pre-commit run skill-scanner \
+  --from-ref "$BASE_SHA" \
+  --to-ref "$HEAD_SHA"
+```
+
+The hook resolves each changed path to its nearest parent containing
+`SKILL.md`, deduplicates paths from the same skill, and scans only those skill
+packages. Both revisions must be present locally; configure the checkout step
+to fetch enough history for the selected base and head SHAs.
+
 ## Policy-Aware CI
 
 Keep preset strategy explicit by workflow stage:

@@ -33,7 +33,7 @@ Usage:
              entry: skill-scanner-pre-commit
              language: python
              types: [file]
-             pass_filenames: false
+             pass_filenames: true
 
 Configuration:
     Create a .skill_scannerrc file in your repo root:
@@ -50,6 +50,8 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+
+from ..core.changed_skills import resolve_affected_skills
 
 # Default configuration
 DEFAULT_CONFIG = {
@@ -111,7 +113,7 @@ def get_staged_files() -> list[str]:
     """
     try:
         result = subprocess.run(
-            ["git", "diff", "--cached", "--name-only", "--diff-filter=ACMR"],
+            ["git", "diff", "--cached", "--name-only", "--diff-filter=ACMRD"],
             capture_output=True,
             text=True,
             check=True,
@@ -121,48 +123,35 @@ def get_staged_files() -> list[str]:
         return []
 
 
-def get_affected_skills(staged_files: list[str], skills_path: str) -> set[Path]:
+def get_affected_skills(
+    changed_files: list[str],
+    skills_path: str,
+    *,
+    repo_root: str | Path | None = None,
+    skill_file: str = "SKILL.md",
+) -> set[Path]:
     """
-    Identify skill directories affected by staged changes.
+    Identify skill directories affected by changed files.
 
     Walks up from each staged file to find the nearest parent containing a
     SKILL.md.  Also honours the configured ``skills_path`` prefix so that
     changes inside a known skills tree are always detected.
 
     Args:
-        staged_files: List of staged file paths
+        changed_files: File paths supplied by pre-commit or discovered from the index
         skills_path: Base path for skills
+        repo_root: Optional repository boundary and base for relative paths
+        skill_file: Metadata filename used to identify a skill root
 
     Returns:
         Set of affected skill directory paths
     """
-    affected_skills: set[Path] = set()
-    skills_prefix = skills_path.rstrip("/") + "/"
-
-    for file_path in staged_files:
-        # 1. Check if file is in the configured skills directory
-        if file_path.startswith(skills_prefix) or file_path.startswith(skills_path):
-            relative = file_path[len(skills_path) :].lstrip("/")
-            parts = relative.split("/")
-
-            if parts:
-                skill_dir = Path(skills_path) / parts[0]
-                skill_md = skill_dir / "SKILL.md"
-                if skill_md.exists():
-                    affected_skills.add(skill_dir)
-
-        # 2. Walk up from the staged file to locate the nearest SKILL.md
-        candidate = Path(file_path).parent
-        while str(candidate) not in ("", "."):
-            if (candidate / "SKILL.md").exists():
-                affected_skills.add(candidate)
-                break
-            parent = candidate.parent
-            if parent == candidate:
-                break
-            candidate = parent
-
-    return affected_skills
+    return resolve_affected_skills(
+        changed_files,
+        repo_root=repo_root,
+        skill_roots=(skills_path,),
+        skill_file=skill_file,
+    )
 
 
 def scan_skill(skill_dir: Path, config: dict) -> dict:
@@ -300,15 +289,16 @@ def main(args: list[str] | None = None) -> int:
         help="Tolerate malformed skills instead of failing",
     )
     parser.add_argument(
-        "install",
-        nargs="?",
-        help="Install pre-commit hook",
+        "filenames",
+        nargs="*",
+        metavar="FILE",
+        help="Changed files supplied by pre-commit (falls back to staged files when omitted)",
     )
 
     parsed_args = parser.parse_args(args)
 
     # Handle install command
-    if parsed_args.install == "install":
+    if parsed_args.filenames == ["install"] and not Path("install").exists():
         return install_hook()
 
     # Find repo root
@@ -343,8 +333,12 @@ def main(args: list[str] | None = None) -> int:
         else:
             affected_skills = set()
     else:
-        staged_files = get_staged_files()
-        affected_skills = get_affected_skills(staged_files, config["skills_path"])
+        changed_files = parsed_args.filenames or get_staged_files()
+        affected_skills = get_affected_skills(
+            changed_files,
+            config["skills_path"],
+            repo_root=repo_root,
+        )
 
     if not affected_skills:
         # No skills affected, allow commit
