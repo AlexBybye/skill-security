@@ -182,7 +182,21 @@ repos:
       - id: skill-scanner
 ```
 
-The hook entry point is `skill-scanner-pre-commit` (defined in `pyproject.toml`). It automatically detects staged skill directories via `git diff --cached` and only scans those.
+The hook entry point is `skill-scanner-pre-commit` (defined in `pyproject.toml`).
+The pre-commit framework passes changed filenames to the hook, which maps each
+file to the nearest parent containing `SKILL.md` and scans every affected skill
+once. Direct invocation without filenames retains the local
+`git diff --cached` fallback.
+
+For incremental CI checks, let pre-commit compute the changed files between two
+available revisions:
+
+```bash
+pre-commit run skill-scanner --from-ref "$BASE_SHA" --to-ref "$HEAD_SHA"
+```
+
+Ensure the CI checkout contains both revisions (for example, avoid a shallow
+checkout that omits the base commit).
 
 ## GitHub Actions Reusable Workflow
 
