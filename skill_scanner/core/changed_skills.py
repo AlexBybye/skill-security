@@ -37,10 +37,10 @@ def _nearest_skill_root(start: Path, skill_file: str, stop: Path | None) -> Path
     """Walk upward from *start* and return the nearest skill root."""
     candidate = start
     while True:
+        if stop is not None and (candidate == stop or not candidate.is_relative_to(stop)):
+            return None
         if (candidate / skill_file).is_file():
             return candidate
-        if stop is not None and candidate == stop:
-            return None
         parent = candidate.parent
         if parent == candidate:
             return None
