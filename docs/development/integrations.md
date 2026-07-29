@@ -115,7 +115,8 @@ The hook entry point is `skill-scanner-pre-commit`, which is installed alongside
 ### Incremental checks in CI
 
 There is no staged index to inspect after a CI checkout. Use pre-commit's
-revision comparison so it passes the changed filenames to Skill Scanner:
+revision comparison; the hook reads those revisions from pre-commit's
+environment and computes the changed paths internally:
 
 ```bash
 pre-commit run skill-scanner \
@@ -123,10 +124,10 @@ pre-commit run skill-scanner \
   --to-ref "$HEAD_SHA"
 ```
 
-The hook resolves each changed path to its nearest parent containing
-`SKILL.md`, deduplicates paths from the same skill, and scans only those skill
-packages. Both revisions must be present locally; configure the checkout step
-to fetch enough history for the selected base and head SHAs.
+The hook uses a separate deletion diff so removed paths are included, resolves
+each changed path to its nearest parent containing `SKILL.md`, and scans each
+affected skill once. Both revisions must be present locally; configure the
+checkout step to fetch enough history for the selected base and head SHAs.
 
 ## Policy-Aware CI
 

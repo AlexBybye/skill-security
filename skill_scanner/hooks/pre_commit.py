@@ -23,7 +23,7 @@ and blocks commits that contain HIGH or CRITICAL severity findings.
 
 Usage:
     1. Install as a pre-commit hook:
-       skill-scanner-pre-commit install
+       skill-scanner-pre-commit --install
 
     2. Or add to .pre-commit-config.yaml:
        - repo: local
@@ -32,8 +32,8 @@ Usage:
              name: Skill Scanner
              entry: skill-scanner-pre-commit
              language: python
-             types: [file]
-             pass_filenames: true
+             pass_filenames: false
+             always_run: true
 
 Configuration:
     Create a .skill_scannerrc file in your repo root:
@@ -47,6 +47,7 @@ Configuration:
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -121,6 +122,25 @@ def get_staged_files() -> list[str]:
         return [f.strip() for f in result.stdout.split("\n") if f.strip()]
     except subprocess.CalledProcessError:
         return []
+
+
+def get_ref_changed_files(from_ref: str, to_ref: str) -> list[str]:
+    """Get changed paths between two revisions, including deleted files."""
+    changed_files: list[str] = []
+    comparison = f"{from_ref}...{to_ref}"
+    try:
+        for diff_filter in ("ACMR", "D"):
+            result = subprocess.run(
+                ["git", "diff", f"--diff-filter={diff_filter}", "--name-only", comparison],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            changed_files.extend(line.strip() for line in result.stdout.splitlines() if line.strip())
+    except subprocess.CalledProcessError:
+        return []
+
+    return list(dict.fromkeys(changed_files))
 
 
 def get_affected_skills(
@@ -279,9 +299,15 @@ def main(args: list[str] | None = None) -> int:
         help="Override skills path from config",
     )
     parser.add_argument(
-        "--all",
+        "--scan-all",
         action="store_true",
+        dest="scan_all",
         help="Scan all skills, not just staged ones",
+    )
+    parser.add_argument(
+        "--install",
+        action="store_true",
+        help="Install the built-in pre-commit hook",
     )
     parser.add_argument(
         "--lenient",
@@ -297,8 +323,8 @@ def main(args: list[str] | None = None) -> int:
 
     parsed_args = parser.parse_args(args)
 
-    # Handle install command
-    if parsed_args.filenames == ["install"] and not Path("install").exists():
+    # Installation is explicit so a changed path named ``install`` remains a filename.
+    if parsed_args.install:
         return install_hook()
 
     # Find repo root
@@ -326,14 +352,21 @@ def main(args: list[str] | None = None) -> int:
         config["lenient"] = True
 
     # Get staged files and affected skills
-    if parsed_args.all:
+    if parsed_args.scan_all:
         skills_dir = repo_root / config["skills_path"]
         if skills_dir.exists():
             affected_skills = {d for d in skills_dir.iterdir() if d.is_dir() and (d / "SKILL.md").exists()}
         else:
             affected_skills = set()
     else:
-        changed_files = parsed_args.filenames or get_staged_files()
+        changed_files = list(parsed_args.filenames)
+        from_ref = os.environ.get("PRE_COMMIT_FROM_REF")
+        to_ref = os.environ.get("PRE_COMMIT_TO_REF")
+        if from_ref and to_ref:
+            changed_files.extend(get_ref_changed_files(from_ref, to_ref))
+            changed_files = list(dict.fromkeys(changed_files))
+        elif not changed_files:
+            changed_files = get_staged_files()
         affected_skills = get_affected_skills(
             changed_files,
             config["skills_path"],

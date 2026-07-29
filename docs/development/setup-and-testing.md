@@ -183,13 +183,11 @@ repos:
 ```
 
 The hook entry point is `skill-scanner-pre-commit` (defined in `pyproject.toml`).
-The pre-commit framework passes changed filenames to the hook, which maps each
-file to the nearest parent containing `SKILL.md` and scans every affected skill
-once. Direct invocation without filenames retains the local
-`git diff --cached` fallback.
+It computes staged paths internally, maps each file to the nearest parent
+containing `SKILL.md`, and scans every affected skill once.
 
-For incremental CI checks, let pre-commit compute the changed files between two
-available revisions:
+For incremental CI checks, let pre-commit expose the two available revisions;
+the hook computes their changed paths, including deletions, internally:
 
 ```bash
 pre-commit run skill-scanner --from-ref "$BASE_SHA" --to-ref "$HEAD_SHA"
