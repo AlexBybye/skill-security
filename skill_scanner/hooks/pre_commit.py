@@ -299,6 +299,16 @@ def main(args: list[str] | None = None) -> int:
         help="Override skills path from config",
     )
     parser.add_argument(
+        "--from-ref",
+        default=os.environ.get("PRE_COMMIT_FROM_REF"),
+        help="Base revision for changed-file discovery (defaults to PRE_COMMIT_FROM_REF)",
+    )
+    parser.add_argument(
+        "--to-ref",
+        default=os.environ.get("PRE_COMMIT_TO_REF"),
+        help="Target revision for changed-file discovery (defaults to PRE_COMMIT_TO_REF)",
+    )
+    parser.add_argument(
         "--scan-all",
         action="store_true",
         dest="scan_all",
@@ -360,10 +370,8 @@ def main(args: list[str] | None = None) -> int:
             affected_skills = set()
     else:
         changed_files = list(parsed_args.filenames)
-        from_ref = os.environ.get("PRE_COMMIT_FROM_REF")
-        to_ref = os.environ.get("PRE_COMMIT_TO_REF")
-        if from_ref and to_ref:
-            changed_files.extend(get_ref_changed_files(from_ref, to_ref))
+        if parsed_args.from_ref and parsed_args.to_ref:
+            changed_files.extend(get_ref_changed_files(parsed_args.from_ref, parsed_args.to_ref))
             changed_files = list(dict.fromkeys(changed_files))
         elif not changed_files:
             changed_files = get_staged_files()

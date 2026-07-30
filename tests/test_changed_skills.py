@@ -334,6 +334,29 @@ class TestPreCommitIncrementalFiles:
             repo_root=tmp_path,
         )
 
+    def test_ref_flags_override_environment_fallbacks(self, tmp_path, monkeypatch):
+        """Explicit ref flags take precedence over pre-commit environment values."""
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("PRE_COMMIT_FROM_REF", "environment-base")
+        monkeypatch.setenv("PRE_COMMIT_TO_REF", "environment-head")
+        rev_parse = CompletedProcess(
+            args=["git", "rev-parse", "--show-toplevel"],
+            returncode=0,
+            stdout=f"{tmp_path}\n",
+            stderr="",
+        )
+
+        with (
+            patch("skill_scanner.hooks.pre_commit.subprocess.run", return_value=rev_parse),
+            patch("skill_scanner.hooks.pre_commit.get_ref_changed_files", return_value=[]) as changed,
+            patch("skill_scanner.hooks.pre_commit.get_staged_files") as staged,
+            patch("skill_scanner.hooks.pre_commit.get_affected_skills", return_value=set()),
+        ):
+            assert main(["--from-ref", "flag-base", "--to-ref", "flag-head"]) == 0
+
+        changed.assert_called_once_with("flag-base", "flag-head")
+        staged.assert_not_called()
+
     def test_legacy_all_filename_cannot_trigger_full_scan(self, tmp_path, monkeypatch):
         """A path token named --all remains a filename after the option boundary."""
         monkeypatch.chdir(tmp_path)

@@ -523,8 +523,8 @@ Command: `python -m skill_scanner.hooks.pre_commit --help`
 
 ```text
 usage: pre_commit.py [-h] [--severity {critical,high,medium,low}]
-                     [--skills-path SKILLS_PATH] [--scan-all] [--install]
-                     [--lenient]
+                     [--skills-path SKILLS_PATH] [--from-ref FROM_REF]
+                     [--to-ref TO_REF] [--scan-all] [--install] [--lenient]
                      [FILE ...]
 
 Pre-commit hook for scanning agent skills
@@ -539,6 +539,10 @@ options:
                         Override severity threshold from config
   --skills-path SKILLS_PATH
                         Override skills path from config
+  --from-ref FROM_REF   Base revision for changed-file discovery (defaults to
+                        PRE_COMMIT_FROM_REF)
+  --to-ref TO_REF       Target revision for changed-file discovery (defaults
+                        to PRE_COMMIT_TO_REF)
   --scan-all            Scan all skills, not just staged ones
   --install             Install the built-in pre-commit hook
   --lenient             Tolerate malformed skills instead of failing
