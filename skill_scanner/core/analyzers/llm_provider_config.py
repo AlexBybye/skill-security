@@ -187,7 +187,7 @@ class ProviderConfig:
 
         # Special cases with different auth mechanisms
         if self.is_vertex:
-            return os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+            return None
         elif self.is_ollama:
             return None
 

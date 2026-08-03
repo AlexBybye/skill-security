@@ -23,7 +23,7 @@ Primary settings for the LLM semantic analyzer.
 
 | Variable | Description | Example |
 |---|---|---|
-| `SKILL_SCANNER_LLM_API_KEY` | Primary API key for LLM analyzer and meta fallback. **(required)** | `sk-ant-...` |
+| `SKILL_SCANNER_LLM_API_KEY` | Primary API key for LLM analyzer and meta fallback. Required for API-key-based providers; not required for Bedrock (IAM), Ollama (local), or Vertex AI (ambient Application Default Credentials). | `sk-ant-...` |
 | `SKILL_SCANNER_LLM_MODEL` | Primary model identifier for semantic analysis. | `anthropic/claude-sonnet-4-20250514` |
 | `SKILL_SCANNER_LLM_PROVIDER` | Optional provider override, including OpenAI-compatible custom endpoint routing. | `openai` |
 | `SKILL_SCANNER_LLM_BASE_URL` | Optional custom endpoint base URL for provider routing. | `https://api.openai.com/v1` |
@@ -115,7 +115,7 @@ Paths, allowlists, and other advanced settings.
 | `ENABLE_LLM_ANALYZER` | `skill_scanner/config/config.py` |
 | `ENABLE_STATIC_ANALYZER` | `skill_scanner/config/config.py` |
 | `GEMINI_API_KEY` | `skill_scanner/core/analyzers/llm_provider_config.py` |
-| `GOOGLE_APPLICATION_CREDENTIALS` | `.env.example`, `skill_scanner/core/analyzers/llm_provider_config.py` |
+| `GOOGLE_APPLICATION_CREDENTIALS` | `.env.example` |
 | `SKILL_SCANNER_ALLOWED_ROOTS` | `skill_scanner/api/router.py` |
 | `SKILL_SCANNER_LLM_API_KEY` | `.env.example`, `skill_scanner/cli/cli.py`, `skill_scanner/config/config.py`, `skill_scanner/core/analyzer_factory.py`, `skill_scanner/core/analyzers/behavioral_analyzer.py`, `skill_scanner/core/analyzers/llm_analyzer.py`, `skill_scanner/core/analyzers/llm_provider_config.py`, `skill_scanner/core/analyzers/meta_analyzer.py` |
 | `SKILL_SCANNER_LLM_API_VERSION` | `.env.example`, `skill_scanner/cli/cli.py`, `skill_scanner/core/analyzer_factory.py`, `skill_scanner/core/analyzers/meta_analyzer.py` |
