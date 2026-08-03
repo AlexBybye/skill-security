@@ -173,12 +173,12 @@ class ProviderConfig:
         Uses SKILL_SCANNER_LLM_API_KEY consistently for all providers.
 
         Special cases:
-        - Vertex AI: Uses GOOGLE_APPLICATION_CREDENTIALS (service account key
-          file) when set; otherwise ``validate()`` allows a ``None`` result
-          through (like Bedrock's IAM role) so LiteLLM/google-auth can fall
-          back to ambient Application Default Credentials -- e.g. a GCE/Cloud
-          Run attached service account or Workload Identity, with no key file
-          on disk at all.
+        - Vertex AI: Always returns ``None`` -- LiteLLM/google-auth read
+          GOOGLE_APPLICATION_CREDENTIALS directly from the environment when
+          set, or fall back to ambient Application Default Credentials
+          (like Bedrock's IAM role) -- e.g. a GCE/Cloud Run attached
+          service account or Workload Identity, with no key file on disk
+          at all.
         - Ollama: No API key needed (local)
         - Azure: Falls back to Entra ID (``az login``) when no API key is set
         """

@@ -99,14 +99,13 @@ usage: cli.py scan [-h] [--format {summary,json,markdown,table,sarif,html}]
                    [--output-sarif OUTPUT_SARIF]
                    [--output-markdown OUTPUT_MARKDOWN]
                    [--output-html OUTPUT_HTML] [--output-table OUTPUT_TABLE]
-                   [--detailed] [--render-markdown | --no-render-markdown]
-                   [--compact] [--verbose] [--fail-on-findings]
-                   [--fail-on-severity LEVEL] [--use-behavioral] [--use-llm]
-                   [--use-virustotal] [--vt-api-key VT_API_KEY]
-                   [--vt-upload-files] [--use-aidefense]
-                   [--aidefense-api-key AIDEFENSE_API_KEY]
+                   [--detailed] [--no-render-markdown] [--compact] [--verbose]
+                   [--fail-on-findings] [--fail-on-severity LEVEL]
+                   [--use-behavioral] [--use-llm] [--use-virustotal]
+                   [--vt-api-key VT_API_KEY] [--vt-upload-files]
+                   [--use-aidefense] [--aidefense-api-key AIDEFENSE_API_KEY]
                    [--aidefense-api-url AIDEFENSE_API_URL]
-                   [--llm-provider {anthropic,openai,openai-compatible}]
+                   [--llm-provider {anthropic,openai}]
                    [--llm-consensus-runs N] [--llm-max-tokens N]
                    [--use-trigger] [--enable-meta] [--policy PRESET_OR_PATH]
                    [--lenient] [--skill-file FILENAME] [--custom-rules PATH]
@@ -138,8 +137,6 @@ options:
   --output-table OUTPUT_TABLE
                         Write Table report to this file
   --detailed            Include detailed findings (Markdown output only)
-  --render-markdown     With --format markdown: render markdown even when
-                        stdout is not detected as a TTY.
   --no-render-markdown  With --format markdown to terminal: print raw markdown
                         instead of rendering (for pipe/copy).
   --compact             Compact JSON output
@@ -161,9 +158,8 @@ options:
                         AI Defense API key (or set AI_DEFENSE_API_KEY)
   --aidefense-api-url AIDEFENSE_API_URL
                         AI Defense API URL (optional, defaults to US region)
-  --llm-provider {anthropic,openai,openai-compatible}
-                        LLM provider shortcut or explicit OpenAI-compatible
-                        override
+  --llm-provider {anthropic,openai}
+                        LLM provider
   --llm-consensus-runs N
                         Run LLM analysis N times and keep only findings with
                         majority agreement (reduces false positives, increases
@@ -211,15 +207,14 @@ usage: cli.py scan-all [-h] [--recursive] [--check-overlap]
                        [--output-markdown OUTPUT_MARKDOWN]
                        [--output-html OUTPUT_HTML]
                        [--output-table OUTPUT_TABLE] [--detailed]
-                       [--render-markdown | --no-render-markdown] [--compact]
-                       [--verbose] [--fail-on-findings]
-                       [--fail-on-severity LEVEL] [--use-behavioral]
-                       [--use-llm] [--use-virustotal]
+                       [--no-render-markdown] [--compact] [--verbose]
+                       [--fail-on-findings] [--fail-on-severity LEVEL]
+                       [--use-behavioral] [--use-llm] [--use-virustotal]
                        [--vt-api-key VT_API_KEY] [--vt-upload-files]
                        [--use-aidefense]
                        [--aidefense-api-key AIDEFENSE_API_KEY]
                        [--aidefense-api-url AIDEFENSE_API_URL]
-                       [--llm-provider {anthropic,openai,openai-compatible}]
+                       [--llm-provider {anthropic,openai}]
                        [--llm-consensus-runs N] [--llm-max-tokens N]
                        [--use-trigger] [--enable-meta]
                        [--policy PRESET_OR_PATH] [--lenient]
@@ -254,8 +249,6 @@ options:
   --output-table OUTPUT_TABLE
                         Write Table report to this file
   --detailed            Include detailed findings (Markdown output only)
-  --render-markdown     With --format markdown: render markdown even when
-                        stdout is not detected as a TTY.
   --no-render-markdown  With --format markdown to terminal: print raw markdown
                         instead of rendering (for pipe/copy).
   --compact             Compact JSON output
@@ -277,9 +270,8 @@ options:
                         AI Defense API key (or set AI_DEFENSE_API_KEY)
   --aidefense-api-url AIDEFENSE_API_URL
                         AI Defense API URL (optional, defaults to US region)
-  --llm-provider {anthropic,openai,openai-compatible}
-                        LLM provider shortcut or explicit OpenAI-compatible
-                        override
+  --llm-provider {anthropic,openai}
+                        LLM provider
   --llm-consensus-runs N
                         Run LLM analysis N times and keep only findings with
                         majority agreement (reduces false positives, increases
@@ -328,15 +320,14 @@ usage: cli.py scan-repo [-h] [--recursive | --no-recursive | -r]
                         [--output-markdown OUTPUT_MARKDOWN]
                         [--output-html OUTPUT_HTML]
                         [--output-table OUTPUT_TABLE] [--detailed]
-                        [--render-markdown | --no-render-markdown] [--compact]
-                        [--verbose] [--fail-on-findings]
-                        [--fail-on-severity LEVEL] [--use-behavioral]
-                        [--use-llm] [--use-virustotal]
+                        [--no-render-markdown] [--compact] [--verbose]
+                        [--fail-on-findings] [--fail-on-severity LEVEL]
+                        [--use-behavioral] [--use-llm] [--use-virustotal]
                         [--vt-api-key VT_API_KEY] [--vt-upload-files]
                         [--use-aidefense]
                         [--aidefense-api-key AIDEFENSE_API_KEY]
                         [--aidefense-api-url AIDEFENSE_API_URL]
-                        [--llm-provider {anthropic,openai,openai-compatible}]
+                        [--llm-provider {anthropic,openai}]
                         [--llm-consensus-runs N] [--llm-max-tokens N]
                         [--use-trigger] [--enable-meta]
                         [--policy PRESET_OR_PATH] [--lenient]
@@ -353,7 +344,7 @@ options:
   -h, --help            show this help message and exit
   --recursive, --no-recursive, -r
                         Recursively search for skills (default: True; use
-                        --no-recursive to disable) (default: True)
+                        --no-recursive to disable)
   --check-overlap       Enable cross-skill description overlap check
   --format {summary,json,markdown,table,sarif,html}
                         Output format (default: summary). May be specified
@@ -374,8 +365,6 @@ options:
   --output-table OUTPUT_TABLE
                         Write Table report to this file
   --detailed            Include detailed findings (Markdown output only)
-  --render-markdown     With --format markdown: render markdown even when
-                        stdout is not detected as a TTY.
   --no-render-markdown  With --format markdown to terminal: print raw markdown
                         instead of rendering (for pipe/copy).
   --compact             Compact JSON output
@@ -397,9 +386,8 @@ options:
                         AI Defense API key (or set AI_DEFENSE_API_KEY)
   --aidefense-api-url AIDEFENSE_API_URL
                         AI Defense API URL (optional, defaults to US region)
-  --llm-provider {anthropic,openai,openai-compatible}
-                        LLM provider shortcut or explicit OpenAI-compatible
-                        override
+  --llm-provider {anthropic,openai}
+                        LLM provider
   --llm-consensus-runs N
                         Run LLM analysis N times and keep only findings with
                         majority agreement (reduces false positives, increases
