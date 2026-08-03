@@ -150,7 +150,7 @@ class TestStagedFileDiscovery:
         completed = CompletedProcess(
             args=[],
             returncode=0,
-            stdout="skills/alpha/deleted.py\n",
+            stdout="skills/alpha/deleted.py\0",
             stderr="",
         )
 
@@ -162,7 +162,8 @@ class TestStagedFileDiscovery:
             "diff",
             "--cached",
             "--name-only",
-            "--diff-filter=ACMRD",
+            "-z",
+            "--diff-filter=ACMRTD",
         ]
 
     def test_ref_diff_uses_a_separate_deletion_query(self):
@@ -170,13 +171,13 @@ class TestStagedFileDiscovery:
         non_deleted = CompletedProcess(
             args=[],
             returncode=0,
-            stdout="skills/alpha/changed.py\n",
+            stdout="skills/alpha/changed.py\0",
             stderr="",
         )
         deleted = CompletedProcess(
             args=[],
             returncode=0,
-            stdout="skills/alpha/deleted.py\ninstall\n",
+            stdout="skills/alpha/deleted.py\0install\0",
             stderr="",
         )
 
@@ -193,8 +194,9 @@ class TestStagedFileDiscovery:
         assert run.call_args_list[0].args[0] == [
             "git",
             "diff",
-            "--diff-filter=ACMR",
+            "--diff-filter=ACMRT",
             "--name-only",
+            "-z",
             "base...head",
         ]
         assert run.call_args_list[1].args[0] == [
@@ -202,8 +204,24 @@ class TestStagedFileDiscovery:
             "diff",
             "--diff-filter=D",
             "--name-only",
+            "-z",
             "base...head",
         ]
+
+    def test_preserves_unusual_path_characters(self):
+        """NUL-delimited output preserves whitespace and backslashes verbatim."""
+        completed = CompletedProcess(
+            args=[],
+            returncode=0,
+            stdout="skills/tab\tname/SKILL.md\0skills/back\\slash/SKILL.md\0",
+            stderr="",
+        )
+
+        with patch("skill_scanner.hooks.pre_commit.subprocess.run", return_value=completed):
+            assert get_staged_files() == [
+                "skills/tab\tname/SKILL.md",
+                "skills/back\\slash/SKILL.md",
+            ]
 
     def test_ref_diff_propagates_git_failure(self):
         """Invalid CI refs cannot be mistaken for an empty change set."""

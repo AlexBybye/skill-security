@@ -114,12 +114,12 @@ def get_staged_files() -> list[str]:
     """
     try:
         result = subprocess.run(
-            ["git", "diff", "--cached", "--name-only", "--diff-filter=ACMRD"],
+            ["git", "diff", "--cached", "--name-only", "-z", "--diff-filter=ACMRTD"],
             capture_output=True,
             text=True,
             check=True,
         )
-        return [f.strip() for f in result.stdout.split("\n") if f.strip()]
+        return [path for path in result.stdout.split("\0") if path]
     except subprocess.CalledProcessError:
         return []
 
@@ -128,14 +128,14 @@ def get_ref_changed_files(from_ref: str, to_ref: str) -> list[str]:
     """Get changed paths between two revisions, including deleted files."""
     changed_files: list[str] = []
     comparison = f"{from_ref}...{to_ref}"
-    for diff_filter in ("ACMR", "D"):
+    for diff_filter in ("ACMRT", "D"):
         result = subprocess.run(
-            ["git", "diff", f"--diff-filter={diff_filter}", "--name-only", comparison],
+            ["git", "diff", f"--diff-filter={diff_filter}", "--name-only", "-z", comparison],
             capture_output=True,
             text=True,
             check=True,
         )
-        changed_files.extend(line.strip() for line in result.stdout.splitlines() if line.strip())
+        changed_files.extend(path for path in result.stdout.split("\0") if path)
 
     return list(dict.fromkeys(changed_files))
 
