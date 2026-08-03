@@ -128,17 +128,14 @@ def get_ref_changed_files(from_ref: str, to_ref: str) -> list[str]:
     """Get changed paths between two revisions, including deleted files."""
     changed_files: list[str] = []
     comparison = f"{from_ref}...{to_ref}"
-    try:
-        for diff_filter in ("ACMR", "D"):
-            result = subprocess.run(
-                ["git", "diff", f"--diff-filter={diff_filter}", "--name-only", comparison],
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-            changed_files.extend(line.strip() for line in result.stdout.splitlines() if line.strip())
-    except subprocess.CalledProcessError:
-        return []
+    for diff_filter in ("ACMR", "D"):
+        result = subprocess.run(
+            ["git", "diff", f"--diff-filter={diff_filter}", "--name-only", comparison],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        changed_files.extend(line.strip() for line in result.stdout.splitlines() if line.strip())
 
     return list(dict.fromkeys(changed_files))
 
@@ -363,7 +360,12 @@ def main(args: list[str] | None = None) -> int:
         from_ref = os.environ.get("PRE_COMMIT_FROM_REF")
         to_ref = os.environ.get("PRE_COMMIT_TO_REF")
         if from_ref and to_ref:
-            changed_files.extend(get_ref_changed_files(from_ref, to_ref))
+            try:
+                changed_files.extend(get_ref_changed_files(from_ref, to_ref))
+            except subprocess.CalledProcessError as exc:
+                detail = exc.stderr.strip() if exc.stderr else str(exc)
+                print(f"Error: Failed to discover changed files: {detail}", file=sys.stderr)
+                return 1
             changed_files = list(dict.fromkeys(changed_files))
         elif not changed_files:
             changed_files = get_staged_files()

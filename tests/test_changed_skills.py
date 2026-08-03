@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 from subprocess import CompletedProcess
 from unittest.mock import patch
@@ -203,6 +204,17 @@ class TestStagedFileDiscovery:
             "--name-only",
             "base...head",
         ]
+
+    def test_ref_diff_propagates_git_failure(self):
+        """Invalid CI refs cannot be mistaken for an empty change set."""
+        with (
+            patch(
+                "skill_scanner.hooks.pre_commit.subprocess.run",
+                side_effect=subprocess.CalledProcessError(128, ["git", "diff"], stderr="bad revision"),
+            ),
+            pytest.raises(subprocess.CalledProcessError),
+        ):
+            get_ref_changed_files("missing", "head")
 
 
 class TestPreCommitIncrementalFiles:
